@@ -1,6 +1,5 @@
 import flet as ft
 import re
-import bcrypt
 
 
 from gui.flet_modules.custom_button import CustomButton
@@ -19,24 +18,37 @@ class register_alert(ft.AlertDialog,db_use):
         self.password_ref=ft.Ref[ft.TextField]()
         self.password_repeat_ref=ft.Ref[ft.TextField]()
         self.register_ref=ft.Ref[ft.ElevatedButton]()
+        self.radio_ref=ft.Ref[ft.RadioGroup]()
 
         self.tracker={
             "name":False,
             "login":False,
+            "gender":False,
             "email":False,
             "password":False,
             "password_repeat":False,
         }
-        self.tracker["login"]
+
 
         super().__init__(
             alignment=ft.Alignment(0,0),
             modal=True,
-            shadow_color=ft.Colors.GREY,
+            shadow_color=ft.colors.GREY,
             content=ft.Column(
+                scroll=True,
                 width=450,
-                height=600,
+                height=800,
                 controls=[
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.END,
+                        controls=[
+                            ft.IconButton(
+                                icon=ft.icons.CLOSE,
+                                on_click=self.close_modal,
+                                icon_color="#A67C52"
+                            )
+                        ]
+                    ),
                     ft.Row(
                         expand=True,
                         alignment=ft.MainAxisAlignment.CENTER,
@@ -47,26 +59,49 @@ class register_alert(ft.AlertDialog,db_use):
                     ),
                     ft.Row(
                         alignment="center",
-                        controls=[ft.TextField(
-                            height=60,
-                            label="Прізвище Ім'я",
-                            border_color=ft.Colors.GREY,
-                            border_width=0.5,
-                            prefix_icon=ft.icons.CANCEL,
-                            ref=self.name_ref,
-                            on_change=lambda e:self.name_correct(),
-                        )]
+                        controls=[
+                            ft.Container(
+                            margin=ft.margin.only(left=2,right=2),
+                            content=ft.TextField(
+                                height=60,
+                                label="Прізвище Ім'я",
+                                max_length=45,
+                                border_color=ft.colors.GREY,
+                                border_width=0.5,
+                                suffix_icon=ft.icons.CLOSE,
+                                ref=self.name_ref,
+                                on_change=lambda e:self.name_correct(),
+                        ))]
+                    ),
+                    ft.Column(
+                        alignment="center",
+                        controls=[
+                            ft.Row(
+                            alignment="center",
+                            controls=[ft.RadioGroup(
+                                content=ft.Row(
+                                    alignment="center",
+                                    wrap=True,
+                                    controls=[
+                                        ft.Radio(value="men", label="Чоловік"),
+                                        ft.Radio(value="women", label="Жінка")
+                                    ],
+                                ),
+                                ref=self.radio_ref,
+                                on_change=lambda e:self.gender_choice()
+                            )]),
+                        ]
                     ),
                     ft.Row(
                         alignment="center",
                         controls=[ft.TextField(
                             height=60,
                             label="email",
-                            border_color=ft.Colors.GREY,
+                            border_color=ft.colors.GREY,
                             border_width=0.5,
                             ref=self.email_ref,
                             on_change=lambda e:self.email_correct(),
-                            prefix_icon=ft.icons.CANCEL,
+                            suffix_icon=ft.icons.CLOSE,
                             on_blur=lambda e:self.email_find(),
                         )]
                     ),
@@ -76,12 +111,12 @@ class register_alert(ft.AlertDialog,db_use):
                             height=60,
                             label="Номер (Не обов'язково)",
                             prefix_text="+380",
-                            border_color=ft.Colors.GREY,
+                            border_color=ft.colors.GREY,
                             input_filter=ft.InputFilter(allow=True, regex_string=r"^\+?[0-9]*$", replacement_string=""),
                             border_width=0.5,
                             ref=self.phone_ref,
                             max_length=9,
-                            prefix_icon=ft.icons.CHECK,
+                            suffix_icon=ft.icons.CLOSE,
                             on_change=lambda e: self.email_correct(),
                         )]
                     ),
@@ -89,14 +124,14 @@ class register_alert(ft.AlertDialog,db_use):
                         alignment="center",
                         controls=[ft.TextField(
                             height=60,
-                            label="Логін",
+                            label="Логін (з маленької)",
                             max_length=25,
-                            border_color=ft.Colors.GREY,
+                            border_color=ft.colors.GREY,
                             keyboard_type=ft.KeyboardType.NAME,
                             border_width=0.5,
                             ref=self.username_ref,
-                            prefix_icon=ft.icons.CANCEL,
-                            input_filter=ft.InputFilter(allow=True, regex_string=r"^[a-z]+$", replacement_string=""),
+                            suffix_icon=ft.icons.CLOSE,
+                            input_filter=ft.InputFilter(allow=True, regex_string=r"^[a-z]*$", replacement_string=""),
                             on_change=lambda e:self.login_correct(),
                             on_blur=lambda e:self.username_find()
                         )]
@@ -108,10 +143,10 @@ class register_alert(ft.AlertDialog,db_use):
                             label="Пароль",
                             password=True,
                             can_reveal_password=True,
-                            border_color=ft.Colors.GREY,
+                            border_color=ft.colors.GREY,
                             border_width=0.5,
                             ref=self.password_ref,
-                            prefix_icon=ft.icons.CANCEL,
+                            prefix_icon=ft.icons.CLOSE,
                             on_change=lambda e:self.password_correct()
                         )]
                     ),
@@ -122,10 +157,10 @@ class register_alert(ft.AlertDialog,db_use):
                             label="Повторіть пароль",
                             password=True,
                             can_reveal_password=True,
-                            border_color=ft.Colors.GREY,
+                            border_color=ft.colors.GREY,
                             border_width=0.5,
                             ref=self.password_repeat_ref,
-                            prefix_icon=ft.icons.CANCEL,
+                            prefix_icon=ft.icons.CLOSE,
                             on_change=lambda e: self.password_correct()
 
                         )]
@@ -133,9 +168,9 @@ class register_alert(ft.AlertDialog,db_use):
                     ft.Row(
                         alignment="center",
                         controls=[
-                            ft.TextButton(content=ft.Container(CustomizeText(text="Увійти",color=ft.Colors.BLUE_ACCENT,size=15),
+                            ft.TextButton(content=ft.Container(CustomizeText(text="Є акаунт",color=ft.colors.BLUE_ACCENT,size=15),
                                                                border=ft.border.only(
-                                                                   bottom=ft.border.BorderSide(1,ft.Colors.BLUE_ACCENT))
+                                                                   bottom=ft.border.BorderSide(1,ft.colors.BLUE_ACCENT))
 
                                                                ),
                                           on_click=self.open_login,
@@ -148,6 +183,7 @@ class register_alert(ft.AlertDialog,db_use):
                             CustomButton(
                             ref=self.register_ref,
                             text="Зареєструватись",
+                            disabled=True,
                             text_size=18,
                             width=200,
                             height=50,
@@ -170,9 +206,22 @@ class register_alert(ft.AlertDialog,db_use):
 
 
     def input_database(self):
-        temp=self.create_row(self.name_ref.current.value,self.username_ref.current.value,self.email_ref.current.value,self.phone_ref.current.value,self.password_ref.current.value)
+        temp=self.create_row(self.name_ref.current.value,self.username_ref.current.value,self.email_ref.current.value,self.phone_ref.current.value,self.password_ref.current.value,self.radio_ref.current.value)
         if temp==True:
-            self.close_modal()
+            self.page.snack_bar = ft.SnackBar(
+                duration=2000,
+                content=ft.Row(
+                    alignment="center",
+                    controls=[CustomizeText("Ви успішно зареєструвались",
+                                            size=20,
+                                            weight="700",
+                                            color=ft.colors.WHITE,
+                                            )
+                              ]
+                )
+            )
+            self.page.snack_bar.open=True
+            self.open_login(self.page)
         else:self.push_error()
 
 
@@ -181,19 +230,22 @@ class register_alert(ft.AlertDialog,db_use):
 
         if re.fullmatch(patterns,self.email_ref.current.value):
             self.tracker["email"]=True
-            self.email_ref.current.prefix_icon=ft.icons.CHECK
+            self.email_ref.current.suffix_icon=ft.icons.CHECK
         else:
             self.tracker["email"]=False
-            self.email_ref.current.prefix_icon=ft.icons.CANCEL
+            self.email_ref.current.suffix_icon=ft.icons.CLOSE
+
         self.check_track()
         self.page.update()
 
+
     def phone_correct(self):
         if len(self.phone_ref.current.value)==9 or len(self.phone_ref.current.value)==0:
-            self.phone_ref.current.prefix_icon=ft.icons.CHECK
+            self.phone_ref.current.suffix_icon=ft.icons.CHECK
         else:
-            self.phone_ref.current.prefix_icon=ft.icons.CANCEL
+            self.phone_ref.current.suffix_icon=ft.icons.CLOSE
         self.page.update()
+
 
     def password_correct(self):
         if len(self.password_ref.current.value)>=8:
@@ -201,14 +253,14 @@ class register_alert(ft.AlertDialog,db_use):
             self.password_ref.current.prefix_icon=ft.icons.CHECK
         else:
             self.tracker["password"]=False
-            self.password_ref.current.prefix_icon=ft.icons.CANCEL
+            self.password_ref.current.prefix_icon=ft.icons.CLOSE
 
         if self.password_ref.current.value == self.password_repeat_ref.current.value and self.tracker["password"]:
             self.tracker["password_repeat"]=True
             self.password_repeat_ref.current.prefix_icon=ft.icons.CHECK
         else:
             self.tracker["password_repeat"]=False
-            self.password_repeat_ref.current.prefix_icon=ft.icons.CANCEL
+            self.password_repeat_ref.current.prefix_icon=ft.icons.CLOSE
         self.check_track()
         self.page.update()
 
@@ -221,10 +273,10 @@ class register_alert(ft.AlertDialog,db_use):
     def login_correct(self):
         if len(self.username_ref.current.value)>=3:
             self.tracker["login"]=True
-            self.username_ref.current.prefix_icon=ft.icons.CHECK
+            self.username_ref.current.suffix_icon=ft.icons.CHECK
         else:
             self.tracker["login"]=False
-            self.username_ref.current.prefix_icon=ft.icons.CANCEL
+            self.username_ref.current.suffix_icon=ft.icons.CLOSE
 
         self.check_track()
         self.page.update()
@@ -242,7 +294,7 @@ class register_alert(ft.AlertDialog,db_use):
         if self.check_email(self.email_ref.current.value):
             self.check_track()
             self.email_ref.current.error_text = "Користувач з таким email вже є"
-            self.email_ref.current.prefix_icon=ft.icons.CANCEL,
+            self.email_ref.current.suffix_icon=ft.icons.CLOSE
             self.tracker["email"] = False
         else:
             self.check_track()
@@ -255,7 +307,7 @@ class register_alert(ft.AlertDialog,db_use):
         if self.check_name(self.username_ref.current.value):
             self.disabled_button(current=True)
             self.username_ref.current.error_text="Користувач з таким username вже є"
-            self.username_ref.current.prefix_icon=ft.icons.CANCEL,
+            self.username_ref.current.suffix_icon=ft.icons.CLOSE
             self.tracker["login"]=True
         else:
             self.check_track()
@@ -264,16 +316,21 @@ class register_alert(ft.AlertDialog,db_use):
         self.page.update()
 
 
+    def gender_choice(self):
+        if self.radio_ref.current.value=="men" or self.radio_ref.current.value=="women":
+            self.tracker["gender"]=True
+            self.check_track()
+
+
     def name_correct(self):
         patterns=r"^[А-ЯІЇЄҐA-Z][а-яіїєґa-z]+ [А-ЯІЇЄҐA-Z][а-яіїєґa-z]+$"
 
         if re.fullmatch(patterns,self.name_ref.current.value):
             self.tracker["name"]=True
-            print(self.tracker)
-            self.name_ref.current.prefix_icon=ft.icons.CHECK
+            self.name_ref.current.suffix_icon=ft.icons.CHECK
         else:
             self.tracker["name"]=False
-            self.name_ref.current.prefix_icon=ft.icons.CANCEL
+            self.name_ref.current.suffix_icon=ft.icons.CLOSE
 
 
         self.check_track()

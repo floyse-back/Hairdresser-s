@@ -30,6 +30,6 @@ class stars_icons(ft.Row):
             new_list.append("#A67C52")
 
         while len(new_list)<5:
-            new_list.append(ft.Colors.GREY)
+            new_list.append(ft.colors.GREY)
         return new_list
 

@@ -26,11 +26,11 @@ class clicked_stars(ft.Container):
                             ft.IconButton(
                                 icon=ft.icons.STAR,
                                 icon_size=30,
-                                icon_color=ft.Colors.GREY,
+                                icon_color=ft.colors.GREY,
                                 on_click=lambda event,my_index=index:self.render_stars(my_index+1)
                             ),
                             CustomizeText(i,
-                                  color=ft.Colors.GREY,size=12,text_align="center",
+                                  color=ft.colors.GREY,size=12,text_align="center",
                           ),
                    ]
                 ))
@@ -44,9 +44,9 @@ class clicked_stars(ft.Container):
         self.update()
 
     def render_stars(self,star_selected):
-        print(star_selected)
         self.colors_stars=["grey","grey","grey","grey","grey"]
         for i in range(0,star_selected):
             self.colors_stars[i]="#A67C52"
+        self.stars=star_selected
         self.switch_colors()
 

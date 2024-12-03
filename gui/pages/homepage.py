@@ -1,19 +1,35 @@
 import flet as ft
 
+
 from gui.flet_modules.customize_text import CustomizeText
 from gui.flet_modules.custom_button import CustomButton
 from gui.flet_modules.servise_card import servise_card
 from gui.flet_modules.choice_container import choice_container
 from gui.flet_modules.custom_image import custom_image
-from gui.flet_modules.reviuse_card import reviuse_card
 from gui.flet_modules.footer import footer
+from gui.flet_modules.div_reviuse import div_reviuse
+from gui.flet_modules.div_servises import div_servises
+from gui.flet_modules.custum_calendar import CustomCalendar
 
 
-class homepage(ft.Column):
+from db.db_use import db_use
+
+
+class homepage(ft.Column,db_use):
     def __init__(self,page,current_width):
         super().__init__(
             alignment=ft.alignment.center,
         )
+
+        self.timetable = [
+            "Пн  ------------  9:00-17:00",
+            "Вт  ------------  9:00-17:00",
+            "Ср  ------------  9:00-17:00",
+            "Чт  ------------  9:00-17:00",
+            "Пт  ------------  9:00-17:00",
+            "Сб  ------------  9:00-16:00",
+            "Нд  ------------  9:00-13:00"
+        ]
 
         self.details_more=[
             "Класичні та модні стрижки",
@@ -22,28 +38,7 @@ class homepage(ft.Column):
             "Укладка та догляд"
         ]
 
-        self.services=[
-            {
-                "img_src":"image/men_hair.jpg",
-                "h1_text":"Чоловіча стрижка",
-                "paragraph":"Завдяки увазі до деталей, ми створимо стрижку, яка відобразить вашу індивідуальність"
-            },
-            {
-                "img_src":"image/women_hair.jpg",
-                "h1_text":'Укладка',
-                "paragraph":'Завдяки увазі до деталей, ми створимо стрижку, яка відобразить вашу індивідуальність.',
-            },
-            {
-                "img_src": "image/styling.jpg",
-                "h1_text": 'Фарбування',
-                "paragraph": 'З нами фарби стають кращими',
-            },
-            {
-                "img_src": "image/devices.jpg",
-                "h1_text": 'Нарощування',
-                "paragraph": 'Нарощуйте волося з нами',
-            }
-        ]
+        self.services=self.select_from(name="services")
 
         self.choice_text=[
             "Професійні майстри: Досвідчені стилісти з багаторічним стажем.",
@@ -60,6 +55,11 @@ class homepage(ft.Column):
         self.more_ref=ft.Ref[ft.Column]()
         self.details_ref=ft.Ref[ft.Column]()
 
+        #Adaptive Ref
+
+        #Adaptive Ref
+
+
         self.choice_controls=self.flet_choicetext()
         self.h1_element=CustomizeText(text="Сучасна перукарня",size=58)
         self.h3_element=CustomizeText(text="Професійні послуги",size=38)
@@ -67,6 +67,22 @@ class homepage(ft.Column):
         self.paragraph_two=CustomizeText(text="Ми використовуємо лише найкращі техніки й інструменти, щоб ви могли насолоджуватися результатом. Зручний онлайн-запис дозволяє легко обрати потрібний час, а затишна атмосфера салону гарантує ваш комфорт від першого кроку.",size=16,weight="500")
 
         self.my_footer=footer(self.page)
+
+        self.my_controls = [
+            self.h1_element,
+            self.h3_element,
+            self.paragraph_one,
+            self.paragraph_two,
+        ]
+
+        if self.page.client_storage.get('panel') != 'barber':
+            self.my_controls.append(
+                ft.Container(
+                    margin=ft.margin.only(top=30, left=4),
+                    content=CustomButton("Записатись", on_click=lambda e: self.page.go("/sign")),
+                )
+            )
+
 
         self.div_header=ft.Row(
             width="100%",
@@ -76,17 +92,7 @@ class homepage(ft.Column):
                     margin=ft.margin.only(bottom=30,right=1),
                     content=ft.Column(
                     width=600,
-                    controls=[
-                        self.h1_element,
-                        self.h3_element,
-                        self.paragraph_one,
-                        self.paragraph_two,
-                        ft.Container(
-                            margin=ft.margin.only(top=30,left=4),
-                            content=CustomButton("Записатись"),
-
-                        )
-                    ]
+                    controls=self.my_controls,
                     ),
                 ),
                 ft.Stack(
@@ -107,30 +113,14 @@ class homepage(ft.Column):
         )
 
         self.div_services=ft.Column(
+            key="servises",
+            width=self.page.width,
+            alignment=ft.MainAxisAlignment.END,
+            horizontal_alignment="center",
             controls=[
-            ft.Row(
-            alignment="center",
-            controls=[
-                ft.Container(
-                    alignment=ft.alignment.top_right,
-                    width=480,
-                    content=CustomizeText(text="Що ми пропонуємо нашим клієнтам",size=48),
-                ),
-                ft.Stack(
-                    width=600,
-                )
-            ]),
-            ft.Container(
-                alignment=ft.alignment.center,
-                content=ft.Row(
-                wrap=True,
-                alignment="center",
-                controls=self.servise_controls(),
-            ),
-            )
+                div_servises(page=self.page)
             ]
         )
-
         self.div_about=ft.Container(
             margin=ft.margin.only(bottom=15,top=10),
             content=ft.Column(
@@ -139,6 +129,7 @@ class homepage(ft.Column):
                 ft.Row(
                     alignment="center",
                     controls=[ft.Container(
+                        width=1150,
                         content=CustomizeText(text="Про нас",size=48)
                     )]
                 ),
@@ -154,7 +145,7 @@ class homepage(ft.Column):
                         ),
                         ft.Container(
                             margin=ft.margin.only(bottom=45),
-                            width=600,
+                            width=620,
                             content=ft.Column(
                                 ref=self.details_ref,
                                 controls=[
@@ -194,6 +185,7 @@ class homepage(ft.Column):
                         controls=[
                         ft.Container(
                             width=500,
+                            key="about",
                             alignment=ft.alignment.center,
                             content=ft.Column(
                                 ref=self.choice_ref,
@@ -227,45 +219,64 @@ class homepage(ft.Column):
         for item in self.flet_choicetext():
             self.choice_ref.current.controls.append(item)
 
-        self.div_reviuse=ft.Container(
-            expand=True,
-            content=ft.Column(
-                alignment=ft.MainAxisAlignment.SPACE_AROUND,
+        if self.page.client_storage.get('panel')=='barber':
+            self.check=1
+        else:
+            self.check=0
+
+
+        self.div_reviuse=ft.Column(
+            key="reviews",
+            width=self.page.width,
+            alignment=ft.MainAxisAlignment.END,
+            horizontal_alignment="center",
+            controls=[div_reviuse(page=self.page,check=self.check)]
+        )
+
+        self.div_sign=(
+            ft.Column(
+                width=self.page.width,
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment="center",
+                controls=[
+            ft.Row(
+                alignment=ft.alignment.center,
+                wrap=True,
                 controls=[
                     ft.Container(
-                        width=500,
-                        alignment=ft.alignment.top_right,
-                        content=CustomizeText("Відгуки клієнтів", font_family="Playfair Display", size=48),
+                        width=1150,
+                        content=CustomizeText("Розклад",size=38),
                     ),
-                    ft.Row(
-                        alignment=ft.alignment.center,
-                        controls=[
-                            reviuse_card()
-                        ],
-                    ),
-                    ft.Container(
-                        content=CustomButton(text="Залишити відгук",
-                                             height=50,
-                                             width=200,
-                                             text_size=20,
-                                             on_click=lambda event:self.page.go("/add_response")
-                                             )
-                    )
                 ]
-            )
+            ),
+            ft.Row(
+            wrap=True,
+            alignment=ft.alignment.center,
+            controls=[
+                ft.Container(
+                    width=500,
+                    content=ft.Column(
+                        controls=self.create_table()
+                    )
+                ),
+                ft.Container(
+                    content=CustomCalendar(width=250),
+                )
+            ]
+        )
+            ]
+        )
         )
 
         self.view_container = ft.Container(
-            width="100%",
-            margin=ft.margin.only(left=25),
             content=ft.Column(
-                alignment="center",
                 controls=[
                     self.div_header,
                     self.div_services,
                     self.div_about,
                     self.div_choice,
                     self.div_reviuse,
+                    self.div_sign,
                 ]
             )
         )
@@ -291,18 +302,17 @@ class homepage(ft.Column):
                     img_src=servise["img_src"],
                     h1_text=servise["h1_text"],
                     paragraph=servise["paragraph"],
+                    price=servise["price"],
                 )
             )
         return new_list
 
 
     def adaptive_width(self,screen_width):
-        print(screen_width)
-        print(self.controls[0].margin)
-        self.choice_ref.current.width=screen_width
 
+        self.choice_ref.current.width=screen_width
+        
         if screen_width <=450:
-            print(self.controls[0].content)
             self.controls[0].content.controls[0].controls[0].content.width=400
         elif screen_width<=690:
             self.controls[0].margin=ft.margin.only(left=0)
@@ -311,18 +321,17 @@ class homepage(ft.Column):
             self.controls[0].content.controls[0].controls[0].content.width=350
             self.controls[0].margin=ft.margin.only(left=0)
         elif screen_width<=1350:
-            self.controls[0].margin=ft.margin.only(left=100)
+            pass
         elif screen_width<=1240:
             #Container_Header_Text
             self.controls[0].content.controls[0].controls[0].content.width=400
-            self.controls[0].margin=ft.margin.only(left=100)
         elif screen_width<=1600:
-            self.controls[0].content.controls[0].controls[0].content.width=600
-            self.controls[0].margin=ft.margin.only(left=100)
+            self.controls[0].content.controls[0].controls[0].content.width=620
 
         self.my_footer.width=screen_width
 
         self.page.update()
+
 
     def more_datails(self):
         new_list=[]
@@ -334,8 +343,23 @@ class homepage(ft.Column):
             new_list.append(lst)
         return new_list
 
+
     def show_more_details(self):
         self.details_ref.current.controls.pop(3)
         new_controls=self.more_datails()
         self.more_ref.current.controls=new_controls
         self.page.update()
+
+
+    def create_table(self):
+        new_list=[]
+        for row in self.timetable:
+            new_list.append(ft.Container(
+                content=CustomizeText(text=f"{row}",size=24,color=ft.colors.GREY)
+            ))
+
+        return new_list
+
+    def focused_to(self,key):
+        self.scroll_to(key=key,duration=1000)
+
